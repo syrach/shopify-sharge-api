@@ -262,7 +262,7 @@ class WebhookController extends Controller
         ])->post("https://{$shopifyDomain}/admin/api/2025-01/webhooks.json", [
             'webhook' => [
                 'topic' => 'orders/create',
-                'address' => 'https://z0znvkndwo.sharedwithexpose.com/webhook/shopify/order-create',
+                'address' => 'https://entegrasyon.shargeturkiye.com/webhook/shopify/order-create',
                 'format' => 'json'
             ]
         ]);
@@ -272,7 +272,7 @@ class WebhookController extends Controller
         ])->post("https://{$shopifyDomain}/admin/api/2025-01/webhooks.json", [
             'webhook' => [
                 'topic' => 'orders/paid',
-                'address' => 'https://z0znvkndwo.sharedwithexpose.com/webhook/shopify/order-paid',
+                'address' => 'https://entegrasyon.shargeturkiye.com/webhook/shopify/order-paid',
                 'format' => 'json'
             ]
         ]);
@@ -282,7 +282,7 @@ class WebhookController extends Controller
         ])->post("https://{$shopifyDomain}/admin/api/2025-01/webhooks.json", [
             'webhook' => [
                 'topic' => 'orders/cancelled',
-                'address' => 'https://z0znvkndwo.sharedwithexpose.com/webhook/shopify/order-cancelled',
+                'address' => 'https://entegrasyon.shargeturkiye.com/webhook/shopify/order-cancelled',
                 'format' => 'json'
             ]
         ]);
