@@ -50,7 +50,7 @@ class AuthController extends Controller
                 ]);
             }
 
-            return redirect("https://{$shop}/admin/apps/entegra-custom-api");
+            return redirect("https://{$shop}/admin/apps/erp-entegrasyon");
         } else {
             return response('Token alınamadı.', 500);
         }

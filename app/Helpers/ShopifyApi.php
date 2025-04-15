@@ -43,6 +43,11 @@ class ShopifyApi
         return $this->request('POST', $endpoint, $params);
     }
 
+    public function put(string $endpoint, array $params = [])
+    {
+        return $this->request('PUT', $endpoint, $params);
+    }
+
     public function delete(string $endpoint, array $params = [])
     {
         return $this->request('DELETE', $endpoint, $params);
