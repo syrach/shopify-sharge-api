@@ -15,7 +15,7 @@ Route::prefix('shopify')->group(function () {
         $shop = $request->get('shop');
         $apiKey = config('services.shopify.client');
         $scopes = 'read_orders,write_orders,read_customers,write_customers,read_products,write_products,write_inventory';
-        $redirectUri = urlencode('https://scjdp5pyrk.sharedwithexpose.com/shopify/callback');
+        $redirectUri = urlencode('https://entegrasyon.shargeturkiye.com/shopify/callback');
 
         $installUrl = "https://{$shop}/admin/oauth/authorize?client_id={$apiKey}&scope={$scopes}&redirect_uri={$redirectUri}";
 
