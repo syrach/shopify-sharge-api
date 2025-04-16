@@ -25,14 +25,6 @@ class ProductController extends Controller
                     $priceChanged = $product->price != $item['price'];
 
                     if ($stockChanged || $priceChanged) {
-                        Log::info('Ürün güncellendi', [
-                            'sku' => $item['stockCode'],
-                            'old_stock' => $product->stock,
-                            'new_stock' => $item['stock'],
-                            'old_price' => $product->price,
-                            'new_price' => $item['price'],
-                        ]);
-
                         $product->stock = $item['stock'];
                         $product->price = $item['price'];
                         $product->save();
@@ -44,9 +36,6 @@ class ProductController extends Controller
 
             if ($updated) {
                 Http::get(url('/shopify/update-products'));
-                Log::info('Shopify update-products tetiklendi');
-            } else {
-                Log::info('Stok veya fiyat değişikliği yok, Shopify update yapılmadı.');
             }
 
         } catch (\Exception $e) {
