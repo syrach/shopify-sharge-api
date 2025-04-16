@@ -29,6 +29,7 @@ class ProductController extends Controller
                 $product->sku = $variant->sku;
                 $product->barcode = $variant->barcode;
                 $product->inventory_item_id = $variant->inventory_item_id;
+                $product->stock = $variant->inventory_quantity;
             }
 
             $product->save();
