@@ -19,10 +19,19 @@ class ProductController extends Controller
         $response = json_decode($shopify->get('products.json')->body());
 
         foreach ($response->products as $item) {
-            $product = new \App\Models\Product();
-            $product->title = $item->title;
-
             foreach ($item->variants as $variant) {
+                // Ürünü bul: variant_id veya barcode'a göre
+                $product = \App\Models\Product::where('variant_id', $variant->id)
+                    ->orWhere('barcode', $variant->barcode)
+                    ->first();
+
+                // Yoksa yeni oluştur
+                if (!$product) {
+                    $product = new \App\Models\Product();
+                }
+
+                // Alanları set et
+                $product->title = $item->title;
                 $product->variant_id = $variant->id;
                 $product->product_id = $variant->product_id;
                 $product->price = $variant->price;
@@ -30,9 +39,9 @@ class ProductController extends Controller
                 $product->barcode = $variant->barcode;
                 $product->inventory_item_id = $variant->inventory_item_id;
                 $product->stock = $variant->inventory_quantity;
-            }
 
-            $product->save();
+                $product->save();
+            }
         }
     }
 
