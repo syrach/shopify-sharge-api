@@ -5,7 +5,8 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Shopify\AuthController;
 use App\Http\Controllers\Shopify\WebhookController;
 use App\Http\Controllers\OrderController;
-use App\Http\Controllers\Shopify\ProductController;
+use App\Http\Controllers\Shopify\ProductController as ShopifyProductController;
+use App\Http\Controllers\Erp\ProductController as ErpProductController;
 use Illuminate\Http\Request;
 
 # Shopify Routes
@@ -25,10 +26,14 @@ Route::prefix('shopify')->group(function () {
     # Shopify Private App Callback
     Route::get('callback', [AuthController::class, 'handleCallback']);
 
-    Route::get('get-locations', [ProductController::class, 'getLocations']);
-    Route::get('get-products', [ProductController::class, 'getProducts']);
-    Route::get('update-products', [ProductController::class, 'updateProducts']); // 30 Min Updates
+    Route::get('get-locations', [ShopifyProductController::class, 'getLocations']);
+    Route::get('get-products', [ShopifyProductController::class, 'getProducts']);
+    Route::get('update-products', [ShopifyProductController::class, 'updateProducts']); // 30 Min Updates
 
+});
+
+Route::prefix('erp')->group(function () {
+    Route::get('get-products', [ErpProductController::class, 'getProducts']);
 });
 
 # Webhook Route
@@ -49,22 +54,20 @@ Route::prefix('orders')->group(function () {
 });
 
 Route::get('test1', function () {
-    $products = Product::find(1);
+    try {
+        $erp = new \App\Helpers\ErpApi();
+        $response = $erp->getProducts();
 
-    $shopify = new \App\Helpers\ShopifyApi();
-    $platform = \App\Models\Setting::find(1);
+        foreach ($response['productList'] as $item) {
+            $product = Product::where('sku', $item['stockCode'])->first();
 
-    $shopify->setPlatform($platform->credentials['shopify_domain'], $platform->credentials['shopify_token']);
-
-    $response = $shopify->put('variants/' . '47711079563540' . '.json', [
-        "variant" => [
-            "id" => 47711079563540,
-            "price" => "20.45",
-            'sku' => "YENISKU",
-            'barcode' => "0000005555555",
-            'inventory_quantity' => "55"
-        ]
-    ]);
-
-    dd($response->body());
+            if ($product) {
+                $product->stock = $item['stock'];
+                $product->price = $item['price'];
+                $product->save();
+            }
+        }
+    } catch (\Exception $e) {
+        \Log::error('ERP ürün senkronizasyon hatası: ' . $e->getMessage());
+    }
 });
