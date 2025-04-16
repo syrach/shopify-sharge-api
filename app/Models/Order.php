@@ -46,7 +46,8 @@ class Order extends Model
         'shopify_payment_gateway',
         'shipping_lines',
         'financial_status',
-        'erp_order_id'
+        'erp_order_id',
+        'total_amounts'
     ];
 
     protected $casts = [

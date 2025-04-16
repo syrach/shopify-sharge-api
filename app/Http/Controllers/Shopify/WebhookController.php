@@ -70,6 +70,7 @@ class WebhookController extends Controller
                     'discount' => $shopifyOrder['total_discounts'],
                     'cargo_code' => null,
                     'cargo' => null,
+                    'total_amounts' => $shopifyOrder['total_price'],
 
                     // Sipariş Detayları
                     'order_details' => $orderDetails,
