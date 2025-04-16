@@ -64,6 +64,7 @@ class Order extends Model
     const STATUS_COMPLETED = 'completed';
     const STATUS_FAILED = 'failed';
     const STATUS_ADRESSFAILED = 'address-failed';
+    const STATUS_CANCELLED = 'cancelled';
 
     // Durum kontrol metodları
     public function isWaiting()
@@ -91,6 +92,11 @@ class Order extends Model
         return $this->sync_status === self::STATUS_ADRESSFAILED;
     }
 
+    public function isCancelled()
+    {
+        return $this->sync_status === self::STATUS_CANCELLED;
+    }
+
     // Durum güncelleme metodları
     public function markAsProcessing()
     {
@@ -111,6 +117,12 @@ class Order extends Model
     public function markAsAddressFailed($error = null)
     {
         $this->sync_status = self::STATUS_ADRESSFAILED;
+        $this->sync_error = $error;
+    }
+
+    public function markAsCancelled($error = null)
+    {
+        $this->sync_status = self::STATUS_CANCELLED;
         $this->sync_error = $error;
     }
 }

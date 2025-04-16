@@ -235,16 +235,9 @@ class WebhookController extends Controller
         $shopifyOrder = $request->all();
         $order = Order::where('shopify_order_id', $shopifyOrder['id'])->first();
 
-        if ($order->entegra_order_id != null) {
-            $entegraApi = new EntegraApi();
+        $order->markAsCancelled();
+        $order->save();
 
-            $response = $entegraApi->updateOrder([
-                'id' => $order->entegra_order_id,
-                'status' => 9
-            ]);
-
-            return response()->json(['success' => true]);
-        }
     }
 
     public function createOrderWebhook(Request $request)
