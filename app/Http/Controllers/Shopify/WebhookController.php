@@ -22,7 +22,7 @@ class WebhookController extends Controller
             $orderDetails = collect($shopifyOrder['line_items'])->map(function ($item) {
                 return [
                     'sku' => $item['sku'],
-                    'price' => $item['price']/1.10,
+                    'price' => $item['price'],
                     'quantity' => $item['quantity'],
                     'name' => $item['name'],
                     'variant_id' => $item['variant_id']
