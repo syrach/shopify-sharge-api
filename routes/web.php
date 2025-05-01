@@ -54,20 +54,13 @@ Route::prefix('orders')->group(function () {
 });
 
 Route::get('test1', function () {
-    try {
-        $erp = new \App\Helpers\ErpApi();
-        $response = $erp->getProducts();
+    $shopify = new \App\Helpers\ShopifyApi();
+    $platform = \App\Models\Setting::find(1);
 
-        foreach ($response['productList'] as $item) {
-            $product = Product::where('sku', $item['stockCode'])->first();
+    $shopify->setPlatform($platform->credentials['shopify_domain'], $platform->credentials['shopify_token']);
 
-            if ($product) {
-                $product->stock = $item['stock'];
-                $product->price = $item['price'];
-                $product->save();
-            }
-        }
-    } catch (\Exception $e) {
-        \Log::error('ERP ürün senkronizasyon hatası: ' . $e->getMessage());
-    }
+    $response = json_decode($shopify->get('orders/11540871905353.json')->body());
+
+    return $response;
+
 });

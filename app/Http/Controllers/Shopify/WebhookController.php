@@ -18,6 +18,14 @@ class WebhookController extends Controller
         try {
             $shopifyOrder = $request->all();
 
+            // Note attributes'ları diziye çevir (varsa)
+            $noteAttributes = [];
+            if (!empty($shopifyOrder['note_attributes'])) {
+                $noteAttributes = collect($shopifyOrder['note_attributes'])->mapWithKeys(function ($item) {
+                    return [$item['name'] => $item['value']];
+                })->toArray();
+            }
+
             // Sipariş detaylarını hazırla
             $orderDetails = collect($shopifyOrder['line_items'])->map(function ($item) {
                 return [
@@ -29,63 +37,66 @@ class WebhookController extends Controller
                 ];
             })->toArray();
 
+            // Temel sipariş verilerini hazırla
+            $orderData = [
+                'order_id' => '10' . $shopifyOrder['order_number'],
+                'platform_reference_no' => $shopifyOrder['order_number'],
+                'full_name' => $shopifyOrder['customer']['first_name'] . ' ' . $shopifyOrder['customer']['last_name'],
+                'email' => $shopifyOrder['email'],
+                'mobile_phone' => $shopifyOrder['customer']['phone'] ?? $shopifyOrder['billing_address']['phone'] ?? '0000000000',
+                'phone' => $shopifyOrder['customer']['phone'] ?? $shopifyOrder['billing_address']['phone'] ?? '0000000000',
+
+                // Fatura Bilgileri
+                'invoice_address' => $shopifyOrder['billing_address']['address1'] . ($shopifyOrder['billing_address']['address2'] ? ', ' . $shopifyOrder['billing_address']['address2'] : ''),
+                'invoice_city' => $shopifyOrder['billing_address']['city'],
+                'invoice_district' => $shopifyOrder['billing_address']['address2'],
+                'invoice_fullname' => $shopifyOrder['billing_address']['first_name'] . ' ' . $shopifyOrder['billing_address']['last_name'],
+                'invoice_postcode' => $shopifyOrder['billing_address']['zip'],
+                'invoice_tel' => $shopifyOrder['billing_address']['phone'],
+                'invoice_gsm' => $shopifyOrder['billing_address']['phone'],
+
+                // Kargo Bilgileri
+                'ship_address' => $shopifyOrder['shipping_address']['address1'] . ($shopifyOrder['shipping_address']['address2'] ? ', ' . $shopifyOrder['shipping_address']['address2'] : ''),
+                'ship_city' => $shopifyOrder['shipping_address']['city'],
+                'ship_district' => $shopifyOrder['shipping_address']['address2'],
+                'ship_fullname' => $shopifyOrder['shipping_address']['first_name'] . ' ' . $shopifyOrder['shipping_address']['last_name'],
+                'ship_postcode' => $shopifyOrder['shipping_address']['zip'],
+                'ship_tel' => $shopifyOrder['shipping_address']['phone'],
+                'ship_gsm' => $shopifyOrder['shipping_address']['phone'],
+
+                // Sipariş Bilgileri
+                'order_date' => $shopifyOrder['created_at'],
+                'discount' => $shopifyOrder['total_discounts'],
+                'cargo_code' => null,
+                'cargo' => null,
+                'total_amounts' => $shopifyOrder['total_price'],
+                'order_details' => $orderDetails,
+                'erp_response' => null,
+                'sync_status' => Order::STATUS_WAITING,
+                'sync_error' => null,
+                'fulfillment_status' => $shopifyOrder['fulfillment_status'],
+                'shopify_payment_gateway' => $shopifyOrder['payment_gateway_names'][0] ?? null,
+                'shipping_lines' => $shopifyOrder['shipping_lines'],
+                'financial_status' => $shopifyOrder['financial_status']
+            ];
+
+            // Note attributes'tan gelen özel alanları ekle (varsa)
+            if (!empty($noteAttributes)) {
+                $invoiceType = $noteAttributes['Fatura Türü'] ?? null;
+                
+                if ($invoiceType === 'Kurumsal') {
+                    $orderData['company'] = $noteAttributes['Firma Adı'] ?? null;
+                    $orderData['tax_office'] = $noteAttributes['Vergi Dairesi'] ?? null;
+                    $orderData['tax_number'] = $noteAttributes['Vergi No'] ?? null;
+                } elseif ($invoiceType === 'Bireysel') {
+                    $orderData['tc_id'] = $noteAttributes['TC Kimlik No'] ?? null;
+                }
+            }
+
             // Siparişi oluştur veya güncelle
             $order = Order::firstOrCreate(
                 ['shopify_order_id' => $shopifyOrder['id']],
-                [
-                    // Temel Bilgiler
-                    'order_id' => '10' . $shopifyOrder['order_number'],
-                    'platform_reference_no' => $shopifyOrder['order_number'],
-                    'tc_id' => null,
-                    'company' => $shopifyOrder['customer']['company'] ?? null,
-                    'full_name' => $shopifyOrder['customer']['first_name'] . ' ' . $shopifyOrder['customer']['last_name'],
-                    'email' => $shopifyOrder['email'],
-                    'mobile_phone' => $shopifyOrder['customer']['phone'] ?? $shopifyOrder['billing_address']['phone'] ?? '0000000000',
-                    'phone' => $shopifyOrder['customer']['phone'] ?? $shopifyOrder['billing_address']['phone'] ?? '0000000000',
-
-                    // Fatura Bilgileri
-                    'invoice_address' => $shopifyOrder['billing_address']['address1'] . ($shopifyOrder['billing_address']['address2'] ? ', ' . $shopifyOrder['billing_address']['address2'] : ''),
-                    'invoice_city' => $shopifyOrder['billing_address']['city'],
-                    'invoice_district' => $shopifyOrder['billing_address']['address2'],
-                    'invoice_fullname' => $shopifyOrder['billing_address']['first_name'] . ' ' . $shopifyOrder['billing_address']['last_name'],
-                    'invoice_postcode' => $shopifyOrder['billing_address']['zip'],
-                    'invoice_tel' => $shopifyOrder['billing_address']['phone'],
-                    'invoice_gsm' => $shopifyOrder['billing_address']['phone'],
-
-                    // Kargo Bilgileri
-                    'ship_address' => $shopifyOrder['shipping_address']['address1'] . ($shopifyOrder['shipping_address']['address2'] ? ', ' . $shopifyOrder['shipping_address']['address2'] : ''),
-                    'ship_city' => $shopifyOrder['shipping_address']['city'],
-                    'ship_district' => $shopifyOrder['shipping_address']['address2'],
-                    'ship_fullname' => $shopifyOrder['shipping_address']['first_name'] . ' ' . $shopifyOrder['shipping_address']['last_name'],
-                    'ship_postcode' => $shopifyOrder['shipping_address']['zip'],
-                    'ship_tel' => $shopifyOrder['shipping_address']['phone'],
-                    'ship_gsm' => $shopifyOrder['shipping_address']['phone'],
-
-                    // Vergi Bilgileri
-                    'tax_office' => null,
-                    'tax_number' => null,
-
-                    // Sipariş Bilgileri
-                    'order_date' => $shopifyOrder['created_at'],
-                    'discount' => $shopifyOrder['total_discounts'],
-                    'cargo_code' => null,
-                    'cargo' => null,
-                    'total_amounts' => $shopifyOrder['total_price'],
-
-                    // Sipariş Detayları
-                    'order_details' => $orderDetails,
-
-                    // Entegra API Yanıtı
-                    'erp_response' => null,
-
-                    // Senkronizasyon Durumu
-                    'sync_status' => Order::STATUS_WAITING,
-                    'sync_error' => null,
-                    'fulfillment_status' => $shopifyOrder['fulfillment_status'],
-                    'shopify_payment_gateway' => $shopifyOrder['payment_gateway_names'][0] ?? null,
-                    'shipping_lines' => $shopifyOrder['shipping_lines'],
-                    'financial_status' => $shopifyOrder['financial_status']
-                ]
+                $orderData
             );
 
             // Eğer sipariş zaten varsa ve başarılı durumdaysa işlemi sonlandır
