@@ -28,12 +28,19 @@ class WebhookController extends Controller
 
             // Sipariş detaylarını hazırla
             $orderDetails = collect($shopifyOrder['line_items'])->map(function ($item) {
+                // Calculate total discount from discount_allocations
+                $totalDiscount = collect($item['discount_allocations'] ?? [])->sum(function ($discount) {
+                    return floatval($discount['amount']);
+                });
+
                 return [
                     'sku' => $item['sku'],
                     'price' => $item['price'],
                     'quantity' => $item['quantity'],
                     'name' => $item['name'],
-                    'variant_id' => $item['variant_id']
+                    'variant_id' => $item['variant_id'],
+                    'discount' => $totalDiscount,
+                    'total_price' => floatval($item['price']) - $totalDiscount
                 ];
             })->toArray();
 
@@ -83,7 +90,7 @@ class WebhookController extends Controller
             // Note attributes'tan gelen özel alanları ekle (varsa)
             if (!empty($noteAttributes)) {
                 $invoiceType = $noteAttributes['Fatura Türü'] ?? null;
-                
+
                 if ($invoiceType === 'Kurumsal') {
                     $orderData['company'] = $noteAttributes['Firma Adı'] ?? null;
                     $orderData['tax_office'] = $noteAttributes['Vergi Dairesi'] ?? null;
