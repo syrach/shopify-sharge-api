@@ -50,7 +50,7 @@ Route::prefix('webhook')->group(function () {
 # Order Management & Error Fix
 Route::prefix('orders')->group(function () {
    Route::get('list', [OrderController::class, 'index'])->name('order.index');
-   Route::put('update/{id}', [OrderController::class, 'update'])->name('order.update');
+   Route::post('update', [OrderController::class, 'update'])->name('order.update');
 });
 
 Route::get('test1', function () {
@@ -59,8 +59,24 @@ Route::get('test1', function () {
 
     $shopify->setPlatform($platform->credentials['shopify_domain'], $platform->credentials['shopify_token']);
 
-    $response = json_decode($shopify->get('orders/11540871905353.json')->body());
+    $response = json_decode($shopify->get('orders/11562781081673.json')->body());
 
-    return $response;
+    $orderDetails = collect($response->order->line_items)->map(function ($item) {
+        $totalDiscount = collect($item->discount_allocations ?? [])->sum(function ($discount) {
+            return floatval($discount->amount);
+        });
+
+        return [
+            'sku' => $item->sku,
+            'price' => $item->price,
+            'quantity' => $item->quantity,
+            'name' => $item->name,
+            'variant_id' => $item->variant_id,
+            'discount' => $totalDiscount,
+            'total_price' => floatval($item->price) - $totalDiscount
+        ];
+    })->toArray();
+
+    return $orderDetails;
 
 });

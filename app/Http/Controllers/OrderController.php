@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Helpers\EntegraApi;
 use App\Models\Order;
+use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
@@ -24,7 +25,7 @@ class OrderController extends Controller
         if ($request->has('start_date') && $request->has('end_date')) {
             $startDate = Carbon::createFromFormat('d-m-Y', $request->start_date)->startOfDay();
             $endDate = Carbon::createFromFormat('d-m-Y', $request->end_date)->endOfDay();
-            
+
             $query->whereBetween('created_at', [$startDate, $endDate]);
         } else {
             // Son 3 günlük siparişler
@@ -36,8 +37,21 @@ class OrderController extends Controller
         return response()->json($orders);
     }
 
-    public function update(Request $request, $id)
+    public function update(Request $request)
     {
+        $order_id = str_replace('gid://shopify/Order/', '', $request->order_id);;
+        $product = Product::find($order_id);
+
+        if ($product) {
+            $product->cargo = $request->shipping[0]['cargo_company'];
+            $product->cargo_code = $request->shipping[0]['barcode'];
+            $product->save();
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Order updated successfully',
+        ]);
 
     }
 }
