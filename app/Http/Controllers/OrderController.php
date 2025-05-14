@@ -49,7 +49,7 @@ class OrderController extends Controller
         }
 
         $order_id = str_replace('gid://shopify/Order/', '', $data['order_id']);
-        $order = Order::find($order_id);
+        $order = Order::where('shopify_order_id', $order_id)->first();
 
         if ($order) {
             $order->cargo = $data['shipping'][0]['cargo_company'];
