@@ -39,12 +39,21 @@ class OrderController extends Controller
 
     public function update(Request $request)
     {
-        $order_id = str_replace('gid://shopify/Order/', '', $request->order_id);;
+        $data = json_decode($request->getContent(), true);
+
+        if (!$data || !isset($data['order_id'], $data['shipping'][0])) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid data received',
+            ], 400);
+        }
+
+        $order_id = str_replace('gid://shopify/Order/', '', $data['order_id']);
         $product = Product::find($order_id);
 
         if ($product) {
-            $product->cargo = $request->shipping[0]['cargo_company'];
-            $product->cargo_code = $request->shipping[0]['barcode'];
+            $product->cargo = $data['shipping'][0]['cargo_company'];
+            $product->cargo_code = $data['shipping'][0]['barcode'];
             $product->save();
         }
 
@@ -52,6 +61,5 @@ class OrderController extends Controller
             'success' => true,
             'message' => 'Order updated successfully',
         ]);
-
     }
 }
