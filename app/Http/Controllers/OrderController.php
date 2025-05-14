@@ -49,12 +49,12 @@ class OrderController extends Controller
         }
 
         $order_id = str_replace('gid://shopify/Order/', '', $data['order_id']);
-        $product = Product::find($order_id);
+        $order = Order::find($order_id);
 
-        if ($product) {
-            $product->cargo = $data['shipping'][0]['cargo_company'];
-            $product->cargo_code = $data['shipping'][0]['barcode'];
-            $product->save();
+        if ($order) {
+            $order->cargo = $data['shipping'][0]['cargo_company'];
+            $order->cargo_code = $data['shipping'][0]['barcode'];
+            $order->save();
         }
 
         return response()->json([
