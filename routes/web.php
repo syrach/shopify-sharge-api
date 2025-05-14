@@ -50,7 +50,6 @@ Route::prefix('webhook')->group(function () {
 # Order Management & Error Fix
 Route::prefix('orders')->group(function () {
    Route::get('list', [OrderController::class, 'index'])->name('order.index');
-   Route::post('update', [OrderController::class, 'update'])->name('order.update');
 });
 
 Route::get('test1', function () {
