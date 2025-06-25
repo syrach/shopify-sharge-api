@@ -249,13 +249,13 @@ class WebhookController extends Controller
         }
     }
 
-    public function handleOrderFullfilled(Request $request)
+    public function handleOrderFulfilled(Request $request)
     {
         try {
             $shopifyOrder = $request->all();
             $order = Order::where('shopify_order_id', $shopifyOrder['id'])->first();
 
-            $order->sync_status = 'fullfilled';
+            $order->sync_status = 'fulfilled';
             $order->save();
 
             return response()->json(['success' => true]);
@@ -360,7 +360,7 @@ class WebhookController extends Controller
         ])->post("https://{$shopifyDomain}/admin/api/2025-01/webhooks.json", [
             'webhook' => [
                 'topic' => 'orders/fulfilled',
-                'address' => 'https://entegrasyon.shargeturkiye.com/webhook/shopify/orders-fulfilled',
+                'address' => 'https://entegrasyon.shargeturkiye.com/webhook/shopify/order-fulfilled',
                 'format' => 'json'
             ]
         ]);

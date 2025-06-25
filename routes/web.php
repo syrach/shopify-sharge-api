@@ -41,7 +41,7 @@ Route::prefix('webhook')->group(function () {
     Route::prefix('shopify')->group(function () {
         Route::post('order-paid', [WebhookController::class, 'handleOrderPaid']);
         Route::post('order-create', [WebhookController::class, 'handleOrderCreate']);
-        Route::post('order-fullfilled', [WebhookController::class, 'handleOrderFullfilled']);
+        Route::post('order-fulfilled', [WebhookController::class, 'handleOrderFullfilled']);
         Route::post('order-cancelled', [WebhookController::class, 'handleOrderCancelled']);
         Route::post('returns-approve', [WebhookController::class, 'handleOrderRefunds']);
         Route::get('register', [WebhookController::class, 'createOrderWebhook']);
