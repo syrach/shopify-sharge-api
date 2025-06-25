@@ -264,20 +264,11 @@ class WebhookController extends Controller
             \Log::error('Sipariş işlenirken hata oluştu', [
                 'order_id' => $order->id ?? null,
                 'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
+                'response' => $shopifyOrder,
             ]);
 
-            if (isset($order)) {
-                $order->markAsFailed($e->getMessage());
-                if (!$order->save()) {
-                    \Log::error('Sipariş failed durumuna geçirilemedi', [
-                        'order_id' => $order->id,
-                        'errors' => $order->getErrors()
-                    ]);
-                }
-            }
-
-            return response()->json(['error' => $e->getMessage()], 500);
+            return response()->json(['error' => $e->getMessage(), 'response' => $shopifyOrder], 500);
         }
     }
 
@@ -296,7 +287,8 @@ class WebhookController extends Controller
             \Log::error('Sipariş işlenirken hata oluştu', [
                 'order_id' => $order->id ?? null,
                 'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
+                'response' => $shopifyOrder,
             ]);
 
             if (isset($order)) {
@@ -309,7 +301,7 @@ class WebhookController extends Controller
                 }
             }
 
-            return response()->json(['error' => $e->getMessage()], 500);
+            return response()->json(['error' => $e->getMessage(), 'response' => $shopifyOrder], 500);
         }
     }
 
