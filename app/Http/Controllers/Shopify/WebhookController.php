@@ -213,14 +213,6 @@ class WebhookController extends Controller
                         }
                     }
 
-                    $entegraApi = new EntegraApi();
-                    $entegraResponse = $entegraApi->createOrder($entegraOrderData);
-
-                    // Entegra yanıtını kaydet
-                    $order->entegra_response = $entegraResponse;
-                    foreach ($entegraResponse['result'] as $entegraOrder) {
-                        $order->entegra_order_id = $entegraOrder['id'];
-                    }
                     $order->markAsCompleted();
                     $order->save();
 

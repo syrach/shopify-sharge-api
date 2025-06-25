@@ -16,6 +16,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'webhook/shopify/order-create',
             'webhook/shopify/order-paid',
             'webhook/shopify/order-cancelled',
+            'webhook/shopify/returns-approve',
+            'webhook/shopify/order-fulfilled',
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
