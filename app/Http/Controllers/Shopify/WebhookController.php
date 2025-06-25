@@ -249,6 +249,70 @@ class WebhookController extends Controller
         }
     }
 
+    public function handleOrderFullfilled(Request $request)
+    {
+        try {
+            $shopifyOrder = $request->all();
+            $order = Order::where('shopify_order_id', $shopifyOrder['id'])->first();
+
+            $order->sync_status = 'fullfilled';
+            $order->save();
+
+            return response()->json(['success' => true]);
+
+        } catch (\Exception $e) {
+            \Log::error('Sipariş işlenirken hata oluştu', [
+                'order_id' => $order->id ?? null,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            if (isset($order)) {
+                $order->markAsFailed($e->getMessage());
+                if (!$order->save()) {
+                    \Log::error('Sipariş failed durumuna geçirilemedi', [
+                        'order_id' => $order->id,
+                        'errors' => $order->getErrors()
+                    ]);
+                }
+            }
+
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
+    public function handleOrderRefunds(Request $request)
+    {
+        try {
+            $shopifyOrder = $request->all();
+            $order = Order::where('shopify_order_id', $shopifyOrder['order']['id'])->first();
+
+            $order->sync_status = 'refunded';
+            $order->save();
+
+            return response()->json(['success' => true]);
+
+        } catch (\Exception $e) {
+            \Log::error('Sipariş işlenirken hata oluştu', [
+                'order_id' => $order->id ?? null,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            if (isset($order)) {
+                $order->markAsFailed($e->getMessage());
+                if (!$order->save()) {
+                    \Log::error('Sipariş failed durumuna geçirilemedi', [
+                        'order_id' => $order->id,
+                        'errors' => $order->getErrors()
+                    ]);
+                }
+            }
+
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
     public function handleOrderCancelled(Request $request)
     {
         $shopifyOrder = $request->all();
@@ -299,10 +363,32 @@ class WebhookController extends Controller
             ]
         ]);
 
+        $response3 = Http::withHeaders([
+            'X-Shopify-Access-Token' => $accessToken
+        ])->post("https://{$shopifyDomain}/admin/api/2025-01/webhooks.json", [
+            'webhook' => [
+                'topic' => 'orders/fulfilled',
+                'address' => 'https://entegrasyon.shargeturkiye.com/webhook/shopify/orders-fulfilled',
+                'format' => 'json'
+            ]
+        ]);
+
+        $response4 = Http::withHeaders([
+            'X-Shopify-Access-Token' => $accessToken
+        ])->post("https://{$shopifyDomain}/admin/api/2025-01/webhooks.json", [
+            'webhook' => [
+                'topic' => 'returns/approve',
+                'address' => 'https://entegrasyon.shargeturkiye.com/webhook/shopify/returns-approve',
+                'format' => 'json'
+            ]
+        ]);
+
         return response()->json([
             'orders_create_response' => $response->json(),
             'orders_paid_response' => $response1->json(),
             'orders_cancelled_response' => $response2->json(),
+            'orders_fulfilled_response' => $response3->json(),
+            'orders_returns_approve' => $response4->json(),
         ]);
     }
 
