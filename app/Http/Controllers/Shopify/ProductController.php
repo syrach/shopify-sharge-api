@@ -67,7 +67,7 @@ class ProductController extends Controller
         $products = Product::all();
 
         $shopify = new \App\Helpers\ShopifyApi();
-        $platform = \App\Models\Setting::find(1);
+        $platform = \App\Models\Setting::find(3);
 
         $shopify->setPlatform($platform->credentials['shopify_domain'], $platform->credentials['shopify_token']);
 
