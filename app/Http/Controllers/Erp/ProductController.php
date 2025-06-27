@@ -34,7 +34,7 @@ class ProductController extends Controller
                 }
             }
 
-            if ($updated) {
+            if ($updated == true) {
                 Http::get(url('/shopify/update-products'));
             }
 
