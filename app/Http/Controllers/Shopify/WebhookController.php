@@ -302,9 +302,10 @@ class WebhookController extends Controller
         $shopifyOrder = $request->all();
         $order = Order::where('shopify_order_id', $shopifyOrder['id'])->first();
 
-        $order->sync_status = 'cancelled';
-        $order->save();
-
+        if ($order) {
+            $order->sync_status = 'cancelled';
+            $order->update();
+        }
     }
 
     public function createOrderWebhook(Request $request)

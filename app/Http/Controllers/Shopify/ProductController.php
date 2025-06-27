@@ -12,7 +12,7 @@ class ProductController extends Controller
     public function getProducts()
     {
         $shopify = new \App\Helpers\ShopifyApi();
-        $platform = \App\Models\Setting::find(1);
+        $platform = \App\Models\Setting::find(3);
 
         $shopify->setPlatform($platform->credentials['shopify_domain'], $platform->credentials['shopify_token']);
 
@@ -48,7 +48,7 @@ class ProductController extends Controller
     public function getLocations()
     {
         $shopify = new \App\Helpers\ShopifyApi();
-        $platform = \App\Models\Setting::find(1);
+        $platform = \App\Models\Setting::find(3);
 
         $shopify->setPlatform($platform->credentials['shopify_domain'], $platform->credentials['shopify_token']);
 
@@ -95,7 +95,7 @@ class ProductController extends Controller
         $locationId = $location->location_id;
 
         $shopify = new \App\Helpers\ShopifyApi();
-        $platform = \App\Models\Setting::find(1);
+        $platform = \App\Models\Setting::find(3);
         $shopify->setPlatform($platform->credentials['shopify_domain'], $platform->credentials['shopify_token']);
 
         $payload = [
