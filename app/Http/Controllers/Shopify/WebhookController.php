@@ -40,7 +40,7 @@ class WebhookController extends Controller
                     'name' => $item['name'],
                     'variant_id' => $item['variant_id'],
                     'discount' => $totalDiscount,
-                    'total_price' => floatval($item['price']) - $totalDiscount
+                    'total_price' => (floatval($item['price']) * $item['quantity']) - $totalDiscount
                 ];
             })->toArray();
 
